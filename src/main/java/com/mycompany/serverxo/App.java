@@ -17,8 +17,10 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("ServerScreen"), 640, 480);
+        scene = new Scene(loadFXML("ServerScreen"), 900, 600);
         stage.setScene(scene);
+        stage.setTitle("XO Game Server Dashboard");
+        stage.setMaximized(true); // Start maximized (fullscreen)
         stage.show();
     }
 
