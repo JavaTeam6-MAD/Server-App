@@ -1,7 +1,14 @@
 package com.mycompany.serverxo;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -11,7 +18,7 @@ import javafx.scene.shape.SVGPath;
 
 /**
  * Controller for the Server Dashboard Screen
- * Manages server start/stop and displays user information
+ * Manages server start/stop, displays user information, and statistics charts
  */
 public class ServerScreenController {
 
@@ -45,13 +52,90 @@ public class ServerScreenController {
     @FXML
     private Label lblUsersCount;
 
+    @FXML
+    private PieChart userStatusChart;
+
+    @FXML
+    private BarChart<String, Number> gamesChart;
+
+    @FXML
+    private CategoryAxis gamesXAxis;
+
+    @FXML
+    private NumberAxis gamesYAxis;
+
     private boolean serverRunning = false;
+    private int activeGamesCount = 0;
 
     @FXML
     public void initialize() {
+        // Initialize charts first
+        initializeCharts();
+
         // Load sample user data
         loadSampleUsers();
         updateServerStatus();
+
+        // Update all charts with initial data
+        updateAllCharts();
+    }
+
+    /**
+     * Initialize the charts with default data and styling
+     */
+    private void initializeCharts() {
+        // Initialize Pie Chart for User Status
+        userStatusChart.setTitle("");
+        userStatusChart.setLegendVisible(true);
+
+        // Initialize Bar Chart for Games
+        gamesChart.setTitle("");
+        gamesXAxis.setLabel("");
+        gamesYAxis.setLabel("Count");
+        gamesYAxis.setTickUnit(1);
+
+        // Set initial empty data
+        updateUserStatusChart();
+        updateGamesChart();
+    }
+
+    /**
+     * Update the user status pie chart with current online/offline counts
+     */
+    private void updateUserStatusChart() {
+        int onlineCount = onlineUsersList.getChildren().size();
+        int offlineCount = offlineUsersList.getChildren().size();
+
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
+                new PieChart.Data("Online (" + onlineCount + ")", onlineCount),
+                new PieChart.Data("Offline (" + offlineCount + ")", offlineCount));
+
+        userStatusChart.setData(pieChartData);
+    }
+
+    /**
+     * Update the games bar chart with current statistics
+     */
+    private void updateGamesChart() {
+        int totalUsers = onlineUsersList.getChildren().size() + offlineUsersList.getChildren().size();
+        int onlineUsers = onlineUsersList.getChildren().size();
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.getData().add(new XYChart.Data<>("Total Users", totalUsers));
+        series.getData().add(new XYChart.Data<>("Online", onlineUsers));
+        series.getData().add(new XYChart.Data<>("Active Games", activeGamesCount));
+
+        ObservableList<XYChart.Series<String, Number>> chartData = FXCollections.observableArrayList();
+        chartData.add(series);
+        gamesChart.setData(chartData);
+    }
+
+    /**
+     * Update all charts with current data
+     */
+    private void updateAllCharts() {
+        updateUserStatusChart();
+        updateGamesChart();
     }
 
     @FXML
@@ -98,6 +182,9 @@ public class ServerScreenController {
 
         // Update counts
         updateUserCounts();
+
+        // Set sample active games count
+        activeGamesCount = 2;
     }
 
     private void addUserToList(VBox container, String username, int score, boolean isOnline, boolean isInGame) {
@@ -166,6 +253,9 @@ public class ServerScreenController {
         lblOnlineCount.setText("Online (" + onlineCount + ")");
         lblOfflineCount.setText("Offline (" + offlineCount + ")");
         lblUsersCount.setText("Users (" + totalCount + ")");
+
+        // Update charts when counts change
+        updateAllCharts();
     }
 
     /**
@@ -216,5 +306,42 @@ public class ServerScreenController {
         onlineUsersList.getChildren().clear();
         offlineUsersList.getChildren().clear();
         updateUserCounts();
+    }
+
+    /**
+     * Increment the active games count and update the chart
+     */
+    public void incrementGameCount() {
+        activeGamesCount++;
+        updateGamesChart();
+    }
+
+    /**
+     * Decrement the active games count and update the chart
+     */
+    public void decrementGameCount() {
+        if (activeGamesCount > 0) {
+            activeGamesCount--;
+            updateGamesChart();
+        }
+    }
+
+    /**
+     * Set the active games count directly and update the chart
+     * 
+     * @param count The new games count
+     */
+    public void setActiveGamesCount(int count) {
+        activeGamesCount = Math.max(0, count);
+        updateGamesChart();
+    }
+
+    /**
+     * Get the current active games count
+     * 
+     * @return The current number of active games
+     */
+    public int getActiveGamesCount() {
+        return activeGamesCount;
     }
 }
