@@ -69,7 +69,7 @@ public class ServerScreenController {
     private boolean serverRunning = false;
     private int activeGamesCount = 0;
     /// server Socket
-    private Server server;
+    private final Server server;
 
 
     @FXML

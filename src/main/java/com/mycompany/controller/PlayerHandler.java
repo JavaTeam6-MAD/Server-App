@@ -49,7 +49,7 @@ public class PlayerHandler extends Thread {
         }
     }
 
-    private void handleRequest(Object req) throws SQLException, IOException {
+    private synchronized void handleRequest(Object req) throws SQLException, IOException {
 
         if (req instanceof LoginRequestModel) {
             Player player = loginService.handleLogin((LoginRequestModel) req);
