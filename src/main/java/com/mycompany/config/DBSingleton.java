@@ -1,4 +1,4 @@
-package com.mycompany.serverxo.DAO;
+package com.mycompany.config;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DBSingleton {
-    private static Connection connection;
+    private static Connection connection;//null
     private final String url = "jdbc:mysql://localhost:3306/";
     private final String dbName = "GameSystem";
     private final String user = "root"; // your MySQL username
@@ -23,7 +23,7 @@ public class DBSingleton {
                 stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbName);
             }
 
-            // Connect to mySQL
+            // Connect to mySQL table
            connection = DriverManager.getConnection(url + dbName, user, password);
 
             // Create tables if they don't exist
@@ -39,7 +39,7 @@ public class DBSingleton {
     public synchronized static Connection getConnection(){
         if(connection ==null){
             synchronized (DBSingleton.class) {
-                     new DBSingleton();
+                     new DBSingleton();//create connection
             }
         }
         return connection;
@@ -53,7 +53,7 @@ public class DBSingleton {
                 "(ID INT AUTO_INCREMENT PRIMARY KEY NOT NULL," +
                 " user_name VARCHAR(50) NOT NULL UNIQUE," +
                 " hashed_pass VARCHAR(255) NOT NULL," +
-                " char_no VARCHAR(8) DEFAULT 'dragon'," +
+                "avatar VARCHAR(8) DEFAULT 'dragon'," +
                 " score INT DEFAULT 0," +
                 " isActive BOOLEAN DEFAULT FALSE," +
                 " isAvailable BOOLEAN DEFAULT FALSE);";

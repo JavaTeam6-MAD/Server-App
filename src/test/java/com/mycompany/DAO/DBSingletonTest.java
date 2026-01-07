@@ -1,5 +1,6 @@
-package com.mycompany.serverxo.DAO;
+package com.mycompany.DAO;
 
+import com.mycompany.config.DBSingleton;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -10,7 +11,7 @@ class DBSingletonTest {
 
     @Test
     void DBSingletonTest(){
-        Connection con=DBSingleton.getConnection();
+        Connection con= DBSingleton.getConnection();
         assertNotNull(con);
     }
 
