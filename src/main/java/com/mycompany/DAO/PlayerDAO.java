@@ -1,8 +1,9 @@
-package com.mycompany.serverxo.DAO;
+package com.mycompany.DAO;
 
 
-import com.mycompany.serverxo.Entity.Player;
-import com.mycompany.serverxo.config.DBSingleton;
+
+import com.mycompany.config.DBSingleton;
+import com.mycompany.model.app.Player;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -16,17 +17,37 @@ public class PlayerDAO {
         this.connection = DBSingleton.getConnection();
     }
 
-    public void insertPlayer(Player player) throws SQLException {
-        String sql = " INSERT INTO Player (user_name, hashed_pass, char_no, score, isActive, isAvailable)VALUES (?, ?, ?, ?, ?, ?)";
 
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setString(1, player.getUserName());
-        ps.setString(2, player.getPassword());
-        ps.setString(3, String.valueOf(player.getCharacter()));
-        ps.setLong(4, player.getScore());
-        ps.setBoolean(5, player.isActive());
-        ps.setBoolean(6, player.isAvailable());
-        ps.executeUpdate();
+    public Player insertPlayer(Player player) throws SQLException {
+        String sql = " INSERT INTO Player (user_name, hashed_pass, avatar, score, isActive, isAvailable)VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement ps =
+                     connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            ps.setString(1, player.getUserName());
+            ps.setString(2, player.getPassword());
+            ps.setString(3, player.getAvatar());
+            ps.setLong(4, player.getScore());
+            ps.setBoolean(5, player.isIsActive());
+            ps.setBoolean(6, player.isIsAvailable());
+
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Inserting player failed, no rows affected. :)");
+            }
+
+            // get generated ID
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    player.setId(rs.getInt(1));
+                }
+            }
+        }catch (SQLIntegrityConstraintViolationException e) {
+            throw e;
+        }
+
+        return player;
     }
 
 
@@ -53,7 +74,24 @@ public class PlayerDAO {
         }
         return null;
     }
+    public Player getPlayerByUsernameAndPassword(String username, String password) throws SQLException {
+        String sql = "SELECT * FROM Player WHERE user_name = ? AND hashed_pass = ?";
 
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            // 2. Set both parameters
+            ps.setString(1, username);
+            ps.setString(2, password);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // 3. If a match is found, map and return the player
+                    return mapRowToPlayer(rs);
+                }
+            }
+        }
+        // Return null if no match is found
+        return null;
+    }
 
     public List<Player> getAllPlayers() throws SQLException {
         String sql = "SELECT * FROM Player";
@@ -99,7 +137,7 @@ public class PlayerDAO {
                 rs.getInt("ID"),
                 rs.getString("user_name"),
                 rs.getString("hashed_pass"),
-                Integer.parseInt(rs.getString("char_no")),
+                rs.getString("avatar"),
                 rs.getLong("score"),
                 rs.getBoolean("isActive"),
                 rs.getBoolean("isAvailable")

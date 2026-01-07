@@ -1,5 +1,6 @@
-package com.mycompany.serverxo;
+package com.mycompany;
 
+import com.mycompany.config.DBSingleton;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Objects;
 
 /**
@@ -37,8 +39,21 @@ public class App extends Application {
         return fxmlLoader.load();
     }
 
+    @Override
+    public void stop() throws SQLException {
+        DBSingleton.getConnection().close();
+    }
+
     public static void main(String[] args) {
+//        PlayerDAO playerDAO=new PlayerDAO();
+//
+//        try {
+//            playerDAO.insertPlayer(new Player("yousef","123","dragon",15,false,true));
+//        } catch (SQLException e) {
+//            System.out.println("cant insert playerrrr");
+//        }
         launch();
+
     }
 
 }

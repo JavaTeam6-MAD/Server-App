@@ -1,9 +1,9 @@
-package com.mycompany.serverxo;
+package com.mycompany;
 
+import com.mycompany.config.Server;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
@@ -15,6 +15,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
+
+import java.io.IOException;
 
 /**
  * Controller for the Server Dashboard Screen
@@ -66,6 +68,9 @@ public class ServerScreenController {
 
     private boolean serverRunning = false;
     private int activeGamesCount = 0;
+    /// server Socket
+    private Server server;
+
 
     @FXML
     public void initialize() {
@@ -78,6 +83,14 @@ public class ServerScreenController {
 
         // Update all charts with initial data
         updateAllCharts();
+
+        /// set server default running
+
+    }
+
+    public ServerScreenController() {
+        server = new Server(12345);
+
     }
 
     /**
@@ -142,13 +155,20 @@ public class ServerScreenController {
     private void onToggleServer() {
         serverRunning = !serverRunning;
         updateServerStatus();
+        try {
+            if (serverRunning) {
+                System.out.println("Server started!");
+                // Add your server start logic here
+                server.startServer();
 
-        if (serverRunning) {
-            System.out.println("Server started!");
-            // Add your server start logic here
-        } else {
-            System.out.println("Server stopped!");
-            // Add your server stop logic here
+            } else {
+                System.out.println("Server stopped!");
+                // Add your server stop logic here
+                server.stopServer();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            /// TODO Alert
         }
     }
 
@@ -260,7 +280,7 @@ public class ServerScreenController {
 
     /**
      * Add a new user to the appropriate list
-     * 
+     *
      * @param username The username
      * @param score    The user's score
      * @param isOnline Whether the user is online
@@ -274,7 +294,7 @@ public class ServerScreenController {
 
     /**
      * Remove a user from the lists
-     * 
+     *
      * @param username The username to remove
      */
     public void removeUser(String username) {
@@ -328,7 +348,7 @@ public class ServerScreenController {
 
     /**
      * Set the active games count directly and update the chart
-     * 
+     *
      * @param count The new games count
      */
     public void setActiveGamesCount(int count) {
@@ -338,7 +358,7 @@ public class ServerScreenController {
 
     /**
      * Get the current active games count
-     * 
+     *
      * @return The current number of active games
      */
     public int getActiveGamesCount() {

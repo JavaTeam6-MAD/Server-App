@@ -1,4 +1,4 @@
-package com.mycompany.serverxo.config;
+package com.mycompany.config;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -53,7 +53,7 @@ public class DBSingleton {
                 "(ID INT AUTO_INCREMENT PRIMARY KEY NOT NULL," +
                 " user_name VARCHAR(50) NOT NULL UNIQUE," +
                 " hashed_pass VARCHAR(255) NOT NULL," +
-                " char_no VARCHAR(8) DEFAULT 'dragon'," +
+                "avatar VARCHAR(8) DEFAULT 'dragon'," +
                 " score INT DEFAULT 0," +
                 " isActive BOOLEAN DEFAULT FALSE," +
                 " isAvailable BOOLEAN DEFAULT FALSE);";
