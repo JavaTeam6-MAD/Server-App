@@ -15,7 +15,7 @@ import java.io.Serializable;
 public class LoginRequestModel implements Serializable{
     private static final long serialVersionUID = 1L;
     
-    private String name;
+    private String name;//username
     private String password;
 
     public LoginRequestModel(String name, String password) {
