@@ -2,7 +2,7 @@ package com.mycompany.controller;
 
 import com.mycompany.model.app.Player;
 import com.mycompany.model.requestModel.LoginRequestModel;
-import com.mycompany.model.requestModel.RegisterRequestModel;
+import com.mycompany.model.requestModel.*;
 import com.mycompany.service.PlayerService;
 import com.mycompany.model.requestModel.ChangeNameRequestModel;
 import com.mycompany.model.requestModel.ChangePasswordRequestModel;
@@ -78,6 +78,11 @@ public class PlayerHandler extends Thread {
         } else if (req instanceof ChangeNameRequestModel) {
             Player player = playerService.handleUpdateName((ChangeNameRequestModel) req);
             out.writeObject(player);
+            out.flush();
+        }else if (req instanceof getFriendsRequestModel) {
+            PlayerDAO dao = new PlayerDAO();
+            List<Player> p = dao.getAllPlayers();
+            out.writeObject(p);
             out.flush();
         } else if (req instanceof ChangePasswordRequestModel) {
             Player player = playerService.handleUpdatePassword((ChangePasswordRequestModel) req);
