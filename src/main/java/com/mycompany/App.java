@@ -1,6 +1,8 @@
 package com.mycompany;
 
+import com.mycompany.DAO.PlayerDAO;
 import com.mycompany.config.DBSingleton;
+import com.mycompany.model.app.Player;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -45,13 +47,6 @@ public class App extends Application {
     }
 
     public static void main(String[] args) {
-//        PlayerDAO playerDAO=new PlayerDAO();
-//
-//        try {
-//            playerDAO.insertPlayer(new Player("yousef","123","dragon",15,false,true));
-//        } catch (SQLException e) {
-//            System.out.println("cant insert playerrrr");
-//        }
         launch();
 
     }

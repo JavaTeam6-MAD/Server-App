@@ -1,7 +1,8 @@
 package com.mycompany.controller;
 
+import com.mycompany.DAO.PlayerDAO;
 import com.mycompany.model.app.Player;
-import com.mycompany.model.requestModel.LoginRequestModel;
+import com.mycompany.model.requestModel.*;
 import com.mycompany.model.requestModel.RegisterRequestModel;
 import com.mycompany.service.LoginService;
 
@@ -10,6 +11,7 @@ import java.net.Socket;
 
 import java.io.*;
 import java.sql.SQLException;
+import java.util.List;
 
 public class PlayerHandler extends Thread {
     private Socket socket;
@@ -58,6 +60,11 @@ public class PlayerHandler extends Thread {
         } else if (req instanceof RegisterRequestModel) {
             Player player = loginService.handleRegistration((RegisterRequestModel) req);
             out.writeObject(player);
+            out.flush();
+        } else if (req instanceof getFriendsRequestModel) {
+            PlayerDAO dao = new PlayerDAO();
+            List<Player> p = dao.getAllPlayers();
+            out.writeObject(p);
             out.flush();
         }
     }
