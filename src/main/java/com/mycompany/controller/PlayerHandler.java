@@ -4,30 +4,24 @@ import com.mycompany.model.app.Player;
 import com.mycompany.model.requestModel.LoginRequestModel;
 import com.mycompany.model.requestModel.RegisterRequestModel;
 import com.mycompany.service.PlayerService;
-import com.mycompany.service.GameService;
 import com.mycompany.model.requestModel.ChangeNameRequestModel;
 import com.mycompany.model.requestModel.ChangePasswordRequestModel;
 import com.mycompany.model.requestModel.ChangeAvatarRequestModel;
-import com.mycompany.model.requestModel.getGameHistoryRequestModel;
-import com.mycompany.model.app.RecordedGame;
 
 import java.net.Socket;
 
 import java.io.*;
 import java.sql.SQLException;
-import java.util.List;
 
 public class PlayerHandler extends Thread {
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private PlayerService playerService;
-    private GameService gameService;
 
     public PlayerHandler(Socket socket) {
         this.socket = socket;
         playerService = new PlayerService();
-        gameService = new GameService();
     }
 
     /// handel each player and sign it in the server
@@ -78,10 +72,6 @@ public class PlayerHandler extends Thread {
         } else if (req instanceof ChangeAvatarRequestModel) {
             Player player = playerService.handleUpdateAvatar((ChangeAvatarRequestModel) req);
             out.writeObject(player);
-            out.flush();
-        } else if (req instanceof getGameHistoryRequestModel) {
-            List<RecordedGame> gameHistory = gameService.handleGameHistoryRequest((getGameHistoryRequestModel) req);
-            out.writeObject(gameHistory);
             out.flush();
         }
     }
