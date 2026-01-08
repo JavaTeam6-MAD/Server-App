@@ -1,7 +1,5 @@
 package com.mycompany.DAO;
 
-
-
 import com.mycompany.config.DBSingleton;
 import com.mycompany.model.app.Player;
 
@@ -17,12 +15,10 @@ public class PlayerDAO {
         this.connection = DBSingleton.getConnection();
     }
 
-
     public Player insertPlayer(Player player) throws SQLException {
         String sql = " INSERT INTO Player (user_name, hashed_pass, avatar, score, isActive, isAvailable)VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement ps =
-                     connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, player.getUserName());
             ps.setString(2, player.getPassword());
@@ -43,13 +39,12 @@ public class PlayerDAO {
                     player.setId(rs.getInt(1));
                 }
             }
-        }catch (SQLIntegrityConstraintViolationException e) {
+        } catch (SQLIntegrityConstraintViolationException e) {
             throw e;
         }
 
         return player;
     }
-
 
     public Player getPlayerById(int id) throws SQLException {
         String sql = "SELECT * FROM Player WHERE ID = ?";
@@ -74,6 +69,7 @@ public class PlayerDAO {
         }
         return null;
     }
+
     public Player getPlayerByUsernameAndPassword(String username, String password) throws SQLException {
         String sql = "SELECT * FROM Player WHERE user_name = ? AND hashed_pass = ?";
 
@@ -105,7 +101,6 @@ public class PlayerDAO {
         return players;
     }
 
-
     public void updateScore(int playerId, long newScore) throws SQLException {
         String sql = "UPDATE Player SET score = ? WHERE ID = ?";
         PreparedStatement ps = connection.prepareStatement(sql);
@@ -123,6 +118,41 @@ public class PlayerDAO {
         ps.executeUpdate();
     }
 
+    public void updateUserName(int playerId, String newName) throws SQLException {
+        String sql = "UPDATE Player SET user_name = ? WHERE ID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, newName);
+            ps.setInt(2, playerId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updatePassword(int playerId, String newPassword) throws SQLException {
+        String sql = "UPDATE Player SET hashed_pass = ? WHERE ID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, newPassword);
+            ps.setInt(2, playerId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateAvatar(int playerId, String newAvatar) throws SQLException {
+        String sql = "UPDATE Player SET avatar = ? WHERE ID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, newAvatar);
+            ps.setInt(2, playerId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updatePlayerActiveStatus(int playerId, boolean isActive) throws SQLException {
+        String sql = "UPDATE Player SET isActive = ? WHERE ID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setBoolean(1, isActive);
+            ps.setInt(2, playerId);
+            ps.executeUpdate();
+        }
+    }
 
     public void deletePlayer(int playerId) throws SQLException {
         String sql = "DELETE FROM Player WHERE ID = ?";
@@ -130,7 +160,6 @@ public class PlayerDAO {
         ps.setInt(1, playerId);
         ps.executeUpdate();
     }
-
 
     private Player mapRowToPlayer(ResultSet rs) throws SQLException {
         return new Player(
@@ -140,7 +169,6 @@ public class PlayerDAO {
                 rs.getString("avatar"),
                 rs.getLong("score"),
                 rs.getBoolean("isActive"),
-                rs.getBoolean("isAvailable")
-        );
+                rs.getBoolean("isAvailable"));
     }
 }

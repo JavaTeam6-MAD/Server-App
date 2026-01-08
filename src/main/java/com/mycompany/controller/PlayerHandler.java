@@ -2,12 +2,15 @@ package com.mycompany.controller;
 
 import com.mycompany.DAO.PlayerDAO;
 import com.mycompany.model.app.Player;
+import com.mycompany.model.requestModel.LoginRequestModel;
 import com.mycompany.model.requestModel.*;
-import com.mycompany.model.requestModel.RegisterRequestModel;
-import com.mycompany.service.LoginService;
-
+import com.mycompany.service.PlayerService;
+import com.mycompany.model.requestModel.ChangeNameRequestModel;
+import com.mycompany.model.requestModel.ChangePasswordRequestModel;
+import com.mycompany.model.requestModel.ChangeAvatarRequestModel;
+import com.mycompany.model.requestModel.LogoutRequestModel;
+import com.mycompany.model.requestModel.MakeUnavailableRequestModel;
 import java.net.Socket;
-
 
 import java.io.*;
 import java.sql.SQLException;
@@ -17,11 +20,12 @@ public class PlayerHandler extends Thread {
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
-    private LoginService loginService;
+    private PlayerService playerService;
+    private int currentPlayerId = -1;
 
     public PlayerHandler(Socket socket) {
         this.socket = socket;
-        loginService = new LoginService();
+        playerService = new PlayerService();
     }
 
     /// handel each player and sign it in the server
@@ -47,6 +51,13 @@ public class PlayerHandler extends Thread {
             e.printStackTrace();
 
         } finally {
+            if (currentPlayerId != -1) {
+                try {
+                    playerService.updatePlayerActiveStatus(currentPlayerId, false);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
             closeResources();
         }
     }
@@ -54,11 +65,32 @@ public class PlayerHandler extends Thread {
     private synchronized void handleRequest(Object req) throws SQLException, IOException {
 
         if (req instanceof LoginRequestModel) {
-            Player player = loginService.handleLogin((LoginRequestModel) req);
+            Player player = playerService.handleLogin((LoginRequestModel) req);
+            if (player != null) {
+                currentPlayerId = player.getId();
+                playerService.updatePlayerStatus(currentPlayerId, true, true);
+            }
             out.writeObject(player);
             out.flush();
         } else if (req instanceof RegisterRequestModel) {
-            Player player = loginService.handleRegistration((RegisterRequestModel) req);
+            Player player = playerService.handleRegistration((RegisterRequestModel) req);
+            out.writeObject(player);
+            out.flush();
+        } else if (req instanceof ChangeNameRequestModel) {
+            Player player = playerService.handleUpdateName((ChangeNameRequestModel) req);
+            out.writeObject(player);
+            out.flush();
+        }else if (req instanceof getFriendsRequestModel) {
+            PlayerDAO dao = new PlayerDAO();
+            List<Player> p = dao.getAllPlayers();
+            out.writeObject(p);
+            out.flush();
+        } else if (req instanceof ChangePasswordRequestModel) {
+            Player player = playerService.handleUpdatePassword((ChangePasswordRequestModel) req);
+            out.writeObject(player);
+            out.flush();
+        } else if (req instanceof ChangeAvatarRequestModel) {
+            Player player = playerService.handleUpdateAvatar((ChangeAvatarRequestModel) req);
             out.writeObject(player);
             out.flush();
         } else if (req instanceof getFriendsRequestModel) {
@@ -66,14 +98,30 @@ public class PlayerHandler extends Thread {
             List<Player> p = dao.getAllPlayers();
             out.writeObject(p);
             out.flush();
+        } else if (req instanceof LogoutRequestModel) {
+            int id = ((LogoutRequestModel) req).getPlayerId();
+            if (id != -1) {
+                // Logout: Not Active, Not Available
+                playerService.updatePlayerStatus(id, false, false);
+                currentPlayerId = -1; // Reset current player
+            }
+        } else if (req instanceof MakeUnavailableRequestModel) {
+            int id = ((MakeUnavailableRequestModel) req).getPlayerId();
+            if (id != -1) {
+                // Unavailable: Active (still connected), Not Available (busy)
+                playerService.updatePlayerStatus(id, true, false);
+            }
         }
     }
 
     private void closeResources() {
         try {
-            if (in != null) in.close();
-            if (out != null) out.close();
-            if (socket != null && !socket.isClosed()) socket.close();
+            if (in != null)
+                in.close();
+            if (out != null)
+                out.close();
+            if (socket != null && !socket.isClosed())
+                socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
