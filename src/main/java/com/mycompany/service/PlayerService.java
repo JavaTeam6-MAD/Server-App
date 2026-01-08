@@ -42,4 +42,12 @@ public class PlayerService {
         playerDAO.updateAvatar(req.getId(), req.getAvatarName());
         return playerDAO.getPlayerById(req.getId());
     }
+
+    public void updatePlayerActiveStatus(int playerId, boolean isActive) throws SQLException {
+        playerDAO.updatePlayerActiveStatus(playerId, isActive);
+    }
+
+    public void updatePlayerStatus(int playerId, boolean isActive, boolean isAvailable) throws SQLException {
+        playerDAO.updatePlayerStatus(playerId, isActive, isAvailable);
+    }
 }

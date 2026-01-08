@@ -145,6 +145,15 @@ public class PlayerDAO {
         }
     }
 
+    public void updatePlayerActiveStatus(int playerId, boolean isActive) throws SQLException {
+        String sql = "UPDATE Player SET isActive = ? WHERE ID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setBoolean(1, isActive);
+            ps.setInt(2, playerId);
+            ps.executeUpdate();
+        }
+    }
+
     public void deletePlayer(int playerId) throws SQLException {
         String sql = "DELETE FROM Player WHERE ID = ?";
         PreparedStatement ps = connection.prepareStatement(sql);
