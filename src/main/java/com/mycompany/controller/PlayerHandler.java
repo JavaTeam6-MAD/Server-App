@@ -7,6 +7,8 @@ import com.mycompany.service.PlayerService;
 import com.mycompany.model.requestModel.ChangeNameRequestModel;
 import com.mycompany.model.requestModel.ChangePasswordRequestModel;
 import com.mycompany.model.requestModel.ChangeAvatarRequestModel;
+import com.mycompany.model.requestModel.LogoutRequestModel;
+import com.mycompany.model.requestModel.MakeUnavailableRequestModel;
 
 import java.net.Socket;
 
@@ -18,6 +20,7 @@ public class PlayerHandler extends Thread {
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private PlayerService playerService;
+    private int currentPlayerId = -1;
 
     public PlayerHandler(Socket socket) {
         this.socket = socket;
@@ -47,6 +50,13 @@ public class PlayerHandler extends Thread {
             e.printStackTrace();
 
         } finally {
+            if (currentPlayerId != -1) {
+                try {
+                    playerService.updatePlayerActiveStatus(currentPlayerId, false);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
             closeResources();
         }
     }
@@ -55,6 +65,10 @@ public class PlayerHandler extends Thread {
 
         if (req instanceof LoginRequestModel) {
             Player player = playerService.handleLogin((LoginRequestModel) req);
+            if (player != null) {
+                currentPlayerId = player.getId();
+                playerService.updatePlayerStatus(currentPlayerId, true, true);
+            }
             out.writeObject(player);
             out.flush();
         } else if (req instanceof RegisterRequestModel) {
@@ -73,6 +87,19 @@ public class PlayerHandler extends Thread {
             Player player = playerService.handleUpdateAvatar((ChangeAvatarRequestModel) req);
             out.writeObject(player);
             out.flush();
+        } else if (req instanceof LogoutRequestModel) {
+            int id = ((LogoutRequestModel) req).getPlayerId();
+            if (id != -1) {
+                // Logout: Not Active, Not Available
+                playerService.updatePlayerStatus(id, false, false);
+                currentPlayerId = -1; // Reset current player
+            }
+        } else if (req instanceof MakeUnavailableRequestModel) {
+            int id = ((MakeUnavailableRequestModel) req).getPlayerId();
+            if (id != -1) {
+                // Unavailable: Active (still connected), Not Available (busy)
+                playerService.updatePlayerStatus(id, true, false);
+            }
         }
     }
 
