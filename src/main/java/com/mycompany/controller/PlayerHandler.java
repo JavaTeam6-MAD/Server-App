@@ -9,22 +9,29 @@ import com.mycompany.model.requestModel.ChangePasswordRequestModel;
 import com.mycompany.model.requestModel.ChangeAvatarRequestModel;
 import com.mycompany.model.requestModel.LogoutRequestModel;
 import com.mycompany.model.requestModel.MakeUnavailableRequestModel;
+import com.mycompany.model.requestModel.getGameHistoryRequestModel;
+import com.mycompany.service.GameService;
+import com.mycompany.model.app.Game;
 
 import java.net.Socket;
 
 import java.io.*;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlayerHandler extends Thread {
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private PlayerService playerService;
+    private GameService gameService;
     private int currentPlayerId = -1;
 
     public PlayerHandler(Socket socket) {
         this.socket = socket;
         playerService = new PlayerService();
+        gameService = new GameService();
     }
 
     /// handel each player and sign it in the server
@@ -99,6 +106,18 @@ public class PlayerHandler extends Thread {
             if (id != -1) {
                 // Unavailable: Active (still connected), Not Available (busy)
                 playerService.updatePlayerStatus(id, true, false);
+            }
+        } else if (req instanceof getGameHistoryRequestModel) {
+            try {
+                List<Game> gameHistory = gameService.handleGetGameHistory((getGameHistoryRequestModel) req);
+                out.writeObject(gameHistory);
+                out.flush();
+            } catch (SQLException e) {
+                System.err.println("Error fetching game history: " + e.getMessage());
+                e.printStackTrace();
+                // Send empty list on error
+                out.writeObject(new ArrayList<Game>());
+                out.flush();
             }
         }
     }
