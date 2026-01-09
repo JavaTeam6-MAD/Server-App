@@ -60,7 +60,9 @@ public class DBSingleton {
                         " date TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
                         " status INT," +
                         " player1ID INT NOT NULL," +
-                        " player2ID INT NOT NULL," +
+                        " player2ID INT NOT NULL, " +
+                        "   isRecorded1 BOOLEAN DEFAULT FALSE,\n" +
+                        "    isRecorded2 BOOLEAN DEFAULT FALSE," +
                         " CONSTRAINT fk_player1 FOREIGN KEY (player1ID) REFERENCES Player(ID)," +
                         " CONSTRAINT fk_player2 FOREIGN KEY (player2ID) REFERENCES Player(ID)" +
                         ")";
