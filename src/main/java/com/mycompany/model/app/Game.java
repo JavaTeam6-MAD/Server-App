@@ -6,15 +6,13 @@ package com.mycompany.model.app;
 
 import com.mycompany.model.utils.GameStatus;
 
-import java.io.Serializable;
 import java.util.Date;
 
 /**
  *
  * @author abdel
  */
-public class Game implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Game {
     int id;
     long score;
     Player player1;

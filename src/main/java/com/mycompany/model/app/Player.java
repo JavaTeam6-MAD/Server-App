@@ -15,7 +15,7 @@ public class Player implements Serializable {
     int id;
     String userName;
     String password;
-    String avatar ;
+    String avatar;
     long score;
     boolean isActive;
     boolean isAvailable;
@@ -94,7 +94,5 @@ public class Player implements Serializable {
     public void setIsAvailable(boolean isAvailable) {
         this.isAvailable = isAvailable;
     }
-    
-    
-    
+
 }
