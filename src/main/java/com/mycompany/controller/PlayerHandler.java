@@ -10,7 +10,9 @@ import com.mycompany.model.requestModel.ChangePasswordRequestModel;
 import com.mycompany.model.requestModel.ChangeAvatarRequestModel;
 import com.mycompany.model.requestModel.LogoutRequestModel;
 import com.mycompany.model.requestModel.MakeUnavailableRequestModel;
-
+import com.mycompany.manager.GameManager;
+import com.mycompany.manager.GameHandler;
+import com.mycompany.model.responseModel.*;
 import java.net.Socket;
 
 import java.io.*;
@@ -22,7 +24,7 @@ public class PlayerHandler extends Thread {
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private PlayerService playerService;
-    private int currentPlayerId = -1;
+    private Player currentPlayer; // Changed from int to object to hold full state
 
     public PlayerHandler(Socket socket) {
         this.socket = socket;
@@ -44,17 +46,17 @@ public class PlayerHandler extends Thread {
 
         } catch (EOFException e) {
             System.out.println("Client disconnected normally");
-
         } catch (IOException e) {
             System.out.println("Connection error: " + e.getMessage());
 
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
 
-        } finally {
-            if (currentPlayerId != -1) {
+        }
+        finally {
+            if (currentPlayer != null && currentPlayer.getId() != -1) {
                 try {
-                    playerService.updatePlayerActiveStatus(currentPlayerId, false);
+                    playerService.updatePlayerActiveStatus(currentPlayer.getId(), false);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -68,8 +70,9 @@ public class PlayerHandler extends Thread {
         if (req instanceof LoginRequestModel) {
             Player player = playerService.handleLogin((LoginRequestModel) req);
             if (player != null) {
-                currentPlayerId = player.getId();
-                playerService.updatePlayerStatus(currentPlayerId, true, true);
+                currentPlayer = player;
+                playerService.updatePlayerStatus(currentPlayer.getId(), true, true);
+                GameManager.getInstance().addPlayer(currentPlayer.getId(), this);//add player in a online list
             }
             out.writeObject(player);
             out.flush();
@@ -99,13 +102,32 @@ public class PlayerHandler extends Thread {
             if (id != -1) {
                 // Logout: Not Active, Not Available
                 playerService.updatePlayerStatus(id, false, false);
-                currentPlayerId = -1; // Reset current player
+                 GameManager.getInstance().removePlayer(id);
+                currentPlayer = null; 
             }
         } else if (req instanceof MakeUnavailableRequestModel) {
             int id = ((MakeUnavailableRequestModel) req).getPlayerId();
             if (id != -1) {
                 // Unavailable: Active (still connected), Not Available (busy)
                 playerService.updatePlayerStatus(id, true, false);
+            }
+        } else if (req instanceof SendChallengeRequestModel) {
+            SendChallengeRequestModel model = (SendChallengeRequestModel) req;
+            GameManager.getInstance().sendChallenge(currentPlayer.getId(), currentPlayer.getUserName(), model.getReceiverPlayer2Id());
+        } else if (req instanceof SendChallengeResponseModel) {
+            SendChallengeResponseModel model = (SendChallengeResponseModel) req;
+            // The challengerId in the model is who challenged US.
+            GameManager.getInstance().handleChallengeResponse(currentPlayer.getId(), currentPlayer.getUserName(), model.getChallengerId(), model.isAccepted());
+        } else if (req instanceof MakeMoveRequestModel) {
+            MakeMoveRequestModel model = (MakeMoveRequestModel) req;
+            // Use gameId from model. Logic in Handler should support finding game by ID or Player.
+            // Using gameId is safer.
+            GameHandler game = GameManager.getInstance().getGame(model.getGameId());
+            if (game != null) {
+                Object moveResponse = game.processMove(currentPlayer.getId(), model.getRow(), model.getCol());
+                if (moveResponse != null) {
+                    GameManager.getInstance().broadcastMove(model.getGameId(), (MakeMoveResponseModel)moveResponse);
+                }
             }
         }
     }
@@ -121,6 +143,23 @@ public class PlayerHandler extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public synchronized void sendRequest(Object request) {
+        try {
+            out.writeObject(request);
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public String getPlayerName() {
+        return (currentPlayer != null) ? currentPlayer.getUserName() : null;
+    }
+    
+    public int getPlayerId() {
+         return (currentPlayer != null) ? currentPlayer.getId() : -1;
     }
 
 }

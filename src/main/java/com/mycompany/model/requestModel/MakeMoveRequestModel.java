@@ -1,53 +1,20 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.model.requestModel;
 
 import java.io.Serializable;
 
-/**
- *
- * @author abdel
- */
 public class MakeMoveRequestModel implements Serializable {
     private static final long serialVersionUID = 1L;
-    int symbol;
-    int player1Id;
-    int player2Id;
-    int row;
-    int column;
+    private int row;
+    private int col;
+    private String gameId; // UUID string
+    private int playerId; // Optional, can be inferred from socket
+    private String symbol; // "X" or "O"
 
-    public MakeMoveRequestModel(int symbol, int player1Id, int player2Id, int row, int column) {
-        this.symbol = symbol;
-        this.player1Id = player1Id;
-        this.player2Id = player2Id;
+    public MakeMoveRequestModel(int row, int col, String gameId, String symbol) {
         this.row = row;
-        this.column = column;
-    }
-
-    public int getSymbol() {
-        return symbol;
-    }
-
-    public void setSymbol(int symbol) {
+        this.col = col;
+        this.gameId = gameId;
         this.symbol = symbol;
-    }
-
-    public int getPlayer1Id() {
-        return player1Id;
-    }
-
-    public void setPlayer1Id(int player1Id) {
-        this.player1Id = player1Id;
-    }
-
-    public int getPlayer2Id() {
-        return player2Id;
-    }
-
-    public void setPlayer2Id(int player2Id) {
-        this.player2Id = player2Id;
     }
 
     public int getRow() {
@@ -58,15 +25,35 @@ public class MakeMoveRequestModel implements Serializable {
         this.row = row;
     }
 
-    public int getColumn() {
-        return column;
+    public int getCol() {
+        return col;
     }
 
-    public void setColumn(int column) {
-        this.column = column;
+    public void setCol(int col) {
+        this.col = col;
     }
- 
+
+    public String getGameId() {
+        return gameId;
+    }
+
+    public void setGameId(String gameId) {
+        this.gameId = gameId;
+    }
     
+    public String getSymbol() {
+        return symbol;
+    }
+    
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+    
+    public int getPlayerId() {
+        return playerId;
+    }
+    
+    public void setPlayerId(int playerId) {
+        this.playerId = playerId;
+    }
 }
-
-

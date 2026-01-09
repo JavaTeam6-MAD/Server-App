@@ -1,24 +1,31 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.model.responseModel;
 
-/**
- *
- * @author abdel
- */
-public class ReceiveChallengeResponseModel {
+import java.io.Serializable;
+
+public class ReceiveChallengeResponseModel implements Serializable {
+    private static final long serialVersionUID = 1L;
     int senderPlayerId;
     int receiverPlayerId;
     boolean accepted;
     boolean receiverPlayerIsRecording;
+    // Fields for Game Start details
+    int gameId;
+    String gameIdUuid; 
 
     public ReceiveChallengeResponseModel(int senderPlayerId, int receiverPlayerId, boolean accepted, boolean receiverPlayerIsRecording) {
         this.senderPlayerId = senderPlayerId;
         this.receiverPlayerId = receiverPlayerId;
         this.accepted = accepted;
         this.receiverPlayerIsRecording = receiverPlayerIsRecording;
+    }
+    
+    // Overloaded for Game Start
+    public ReceiveChallengeResponseModel(int senderPlayerId, int receiverPlayerId, boolean accepted, boolean receiverPlayerIsRecording, String gameIdUuid) {
+        this.senderPlayerId = senderPlayerId;
+        this.receiverPlayerId = receiverPlayerId;
+        this.accepted = accepted;
+        this.receiverPlayerIsRecording = receiverPlayerIsRecording;
+        this.gameIdUuid = gameIdUuid;
     }
 
     public int getSenderPlayerId() {
@@ -53,4 +60,11 @@ public class ReceiveChallengeResponseModel {
         this.receiverPlayerIsRecording = receiverPlayerIsRecording;
     }
     
+    public String getGameIdUuid() {
+        return gameIdUuid;
+    }
+    
+    public void setGameIdUuid(String gameIdUuid) {
+        this.gameIdUuid = gameIdUuid;
+    }
 }

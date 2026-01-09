@@ -1,20 +1,17 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.model.requestModel;
 
-/**
- *
- * @author abdel
- */
-public class ReceiveChallengeRequestModel {
-    int player1Id;
-    int player2Id;
+import java.io.Serializable;
 
-    public ReceiveChallengeRequestModel(int player1Id, int player2Id) {
+public class ReceiveChallengeRequestModel implements Serializable {
+    private static final long serialVersionUID = 1L;
+    int player1Id; // Sender
+    int player2Id; // Receiver
+    String senderName; // Added for convenience
+
+    public ReceiveChallengeRequestModel(int player1Id, int player2Id, String senderName) {
         this.player1Id = player1Id;
         this.player2Id = player2Id;
+        this.senderName = senderName;
     }
 
     public int getPlayer1Id() {
@@ -33,4 +30,11 @@ public class ReceiveChallengeRequestModel {
         this.player2Id = player2Id;
     }
     
+    public String getSenderName() {
+        return senderName;
+    }
+    
+    public void setSenderName(String senderName) {
+        this.senderName = senderName;
+    }
 }
