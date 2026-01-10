@@ -18,7 +18,7 @@ public class GameManager {
     private Map<Integer, PlayerHandler> onlinePlayers;
     private Map<String, GameHandler> activeGames;
     private Map<Integer, String> playerGameMap; // Fast lookup player -> gameId (String)
-    
+
     private GameDAO gameDAO;
 
     private GameManager() {
@@ -65,25 +65,28 @@ public class GameManager {
         PlayerHandler challenger = onlinePlayers.get(challengerId);
         PlayerHandler opponent = onlinePlayers.get(opponentId);
 
-        if (challenger == null) return;
+        if (challenger == null)
+            return;
 
         if (isAccepted && opponent != null) {
             // Start Game
             GameSession session = new GameSession(challengerId, challenger.getPlayerName(), opponentId, opponentName);
             GameHandler gameHandler = new GameHandler(session);
-            
+
             String gameId = session.getGameId().toString();
             activeGames.put(gameId, gameHandler);
             playerGameMap.put(challengerId, gameId);
             playerGameMap.put(opponentId, gameId);
 
             // Notify both - using ReceiveChallengeResponseModel as Start Game signal
+            // Sender in Model = Challenger (Player 1)
+            // Receiver in Model = Opponent (Player 2)
+            String challengerName = challenger.getPlayerName(); // Safe access, checked above
+
             ReceiveChallengeResponseModel responseToChallenger = new ReceiveChallengeResponseModel(
-                opponentId, challengerId, true, false, gameId
-            );
+                    opponentId, challengerId, true, false, gameId, challengerName, opponentName);
             ReceiveChallengeResponseModel responseToOpponent = new ReceiveChallengeResponseModel(
-                challengerId, opponentId, true, false, gameId
-            );
+                    challengerId, opponentId, true, false, gameId, challengerName, opponentName);
 
             challenger.sendRequest(responseToChallenger);
             opponent.sendRequest(responseToOpponent);
@@ -103,27 +106,29 @@ public class GameManager {
         String gameId = playerGameMap.get(playerId);
         return (gameId != null) ? activeGames.get(gameId) : null;
     }
-    
+
     public void removeGame(String gameId) {
-         GameHandler handler = activeGames.remove(gameId);
-         if(handler != null){
-             playerGameMap.remove(handler.getSession().getPlayer1Id());
-             playerGameMap.remove(handler.getSession().getPlayer2Id());
-         }
+        GameHandler handler = activeGames.remove(gameId);
+        if (handler != null) {
+            playerGameMap.remove(handler.getSession().getPlayer1Id());
+            playerGameMap.remove(handler.getSession().getPlayer2Id());
+        }
     }
-    
+
     public void broadcastMove(String gameId, MakeMoveResponseModel moveResponse) {
         GameHandler game = activeGames.get(gameId);
         if (game != null) {
             int p1 = game.getSession().getPlayer1Id();
             int p2 = game.getSession().getPlayer2Id();
-            
+
             PlayerHandler h1 = onlinePlayers.get(p1);
             PlayerHandler h2 = onlinePlayers.get(p2);
-            
-            if (h1 != null) h1.sendRequest(moveResponse);
-            if (h2 != null) h2.sendRequest(moveResponse);
-            
+
+            if (h1 != null)
+                h1.sendRequest(moveResponse);
+            if (h2 != null)
+                h2.sendRequest(moveResponse);
+
             if (moveResponse.isGameOver()) {
                 saveGameResult(game.getSession(), moveResponse.getWinner());
                 removeGame(gameId);
@@ -134,24 +139,24 @@ public class GameManager {
     private void saveGameResult(GameSession session, String winnerSymbol) {
         try {
             Game game = new Game();
-            
+
             // Set Players (We need Player objects, but we only have IDs/names here.
-            // GameDAO logic relies on Player objects to get ID. 
+            // GameDAO logic relies on Player objects to get ID.
             // We can create dummy players with just ID for the DAO to extract ID.
-            Player p1 = new Player(session.getPlayer1Id(), session.getPlayer1Name(), "","",0,true,true);
-            Player p2 = new Player(session.getPlayer2Id(), session.getPlayer2Name(), "","",0,true,true);
+            Player p1 = new Player(session.getPlayer1Id(), session.getPlayer1Name(), "", "", 0, true, true);
+            Player p2 = new Player(session.getPlayer2Id(), session.getPlayer2Name(), "", "", 0, true, true);
             game.setPlayer1(p1);
             game.setPlayer2(p2);
 
             int statusInt = 3; // Default Draw
             if (winnerSymbol != null) {
                 if (winnerSymbol.equals("X")) {
-                   statusInt = 1; // P1
+                    statusInt = 1; // P1
                 } else if (winnerSymbol.equals("O")) {
-                   statusInt = 2; // P2
+                    statusInt = 2; // P2
                 }
             }
-            
+
             // To be proper: Update DAO to take (p1, p2, winnerStatus) or similar.
             // But I must match existing DAO pattern taking a Game object.
             // I will update the DAO to accept the status int directly if I can overload it?

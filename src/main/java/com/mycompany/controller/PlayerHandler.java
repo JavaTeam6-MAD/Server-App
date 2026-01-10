@@ -52,8 +52,7 @@ public class PlayerHandler extends Thread {
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
 
-        }
-        finally {
+        } finally {
             if (currentPlayer != null && currentPlayer.getId() != -1) {
                 try {
                     playerService.updatePlayerActiveStatus(currentPlayer.getId(), false);
@@ -72,7 +71,11 @@ public class PlayerHandler extends Thread {
             if (player != null) {
                 currentPlayer = player;
                 playerService.updatePlayerStatus(currentPlayer.getId(), true, true);
-                GameManager.getInstance().addPlayer(currentPlayer.getId(), this);//add player in a online list
+                GameManager.getInstance().addPlayer(currentPlayer.getId(), this);// add player in a online list
+
+                // Update object sent to client to reflect new status
+                player.setIsActive(true);
+                player.setIsAvailable(true);
             }
             out.writeObject(player);
             out.flush();
@@ -84,7 +87,7 @@ public class PlayerHandler extends Thread {
             Player player = playerService.handleUpdateName((ChangeNameRequestModel) req);
             out.writeObject(player);
             out.flush();
-        }else if (req instanceof getFriendsRequestModel) {
+        } else if (req instanceof getFriendsRequestModel) {
             PlayerDAO dao = new PlayerDAO();
             List<Player> p = dao.getAllPlayers();
             out.writeObject(p);
@@ -102,8 +105,8 @@ public class PlayerHandler extends Thread {
             if (id != -1) {
                 // Logout: Not Active, Not Available
                 playerService.updatePlayerStatus(id, false, false);
-                 GameManager.getInstance().removePlayer(id);
-                currentPlayer = null; 
+                GameManager.getInstance().removePlayer(id);
+                currentPlayer = null;
             }
         } else if (req instanceof MakeUnavailableRequestModel) {
             int id = ((MakeUnavailableRequestModel) req).getPlayerId();
@@ -113,20 +116,23 @@ public class PlayerHandler extends Thread {
             }
         } else if (req instanceof SendChallengeRequestModel) {
             SendChallengeRequestModel model = (SendChallengeRequestModel) req;
-            GameManager.getInstance().sendChallenge(currentPlayer.getId(), currentPlayer.getUserName(), model.getReceiverPlayer2Id());
+            GameManager.getInstance().sendChallenge(currentPlayer.getId(), currentPlayer.getUserName(),
+                    model.getReceiverPlayer2Id());
         } else if (req instanceof SendChallengeResponseModel) {
             SendChallengeResponseModel model = (SendChallengeResponseModel) req;
             // The challengerId in the model is who challenged US.
-            GameManager.getInstance().handleChallengeResponse(currentPlayer.getId(), currentPlayer.getUserName(), model.getChallengerId(), model.isAccepted());
+            GameManager.getInstance().handleChallengeResponse(currentPlayer.getId(), currentPlayer.getUserName(),
+                    model.getChallengerId(), model.isAccepted());
         } else if (req instanceof MakeMoveRequestModel) {
             MakeMoveRequestModel model = (MakeMoveRequestModel) req;
-            // Use gameId from model. Logic in Handler should support finding game by ID or Player.
+            // Use gameId from model. Logic in Handler should support finding game by ID or
+            // Player.
             // Using gameId is safer.
             GameHandler game = GameManager.getInstance().getGame(model.getGameId());
             if (game != null) {
                 Object moveResponse = game.processMove(currentPlayer.getId(), model.getRow(), model.getCol());
                 if (moveResponse != null) {
-                    GameManager.getInstance().broadcastMove(model.getGameId(), (MakeMoveResponseModel)moveResponse);
+                    GameManager.getInstance().broadcastMove(model.getGameId(), (MakeMoveResponseModel) moveResponse);
                 }
             }
         }
@@ -153,13 +159,13 @@ public class PlayerHandler extends Thread {
             e.printStackTrace();
         }
     }
-    
+
     public String getPlayerName() {
         return (currentPlayer != null) ? currentPlayer.getUserName() : null;
     }
-    
+
     public int getPlayerId() {
-         return (currentPlayer != null) ? currentPlayer.getId() : -1;
+        return (currentPlayer != null) ? currentPlayer.getId() : -1;
     }
 
 }
