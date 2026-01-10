@@ -4,6 +4,7 @@ import com.mycompany.DAO.GameDAO;
 import com.mycompany.controller.PlayerHandler;
 import com.mycompany.model.app.Game;
 import com.mycompany.model.app.Player;
+import com.mycompany.model.requestModel.EndGameSessionRequestModel;
 import com.mycompany.model.requestModel.ReceiveChallengeRequestModel;
 import com.mycompany.model.responseModel.ReceiveChallengeResponseModel;
 import com.mycompany.model.responseModel.MakeMoveResponseModel;
@@ -61,6 +62,8 @@ public class GameManager {
         if (opponent != null) {
             // Updated model usage
             opponent.sendRequest(new ReceiveChallengeRequestModel(challengerId, opponentId, challengerName));
+        }else {
+            /// TODO handle
         }
     }
 
@@ -167,7 +170,7 @@ public class GameManager {
     }
 
     // Forfeit Handler
-    public void handleForfeit(int loserId) {
+    public void handleForfeit(int loserId, EndGameSessionRequestModel endGameSessionRequestModel) {
         GameHandler game = getGameByPlayerId(loserId);
         if (game != null) {
             String gameId = game.getSession().getGameId().toString();
@@ -197,6 +200,10 @@ public class GameManager {
                 // Or send EndGameSessionRequestModel with winnerId.
                 winnerHandler.sendRequest(new com.mycompany.model.requestModel.EndGameSessionRequestModel(winnerId,
                         loserId, GameStatus.WIN));
+            }else{
+                PlayerHandler winnerHandler2 = onlinePlayers.get(endGameSessionRequestModel.getPlayer2Id());
+                winnerHandler2.sendRequest(new com.mycompany.model.requestModel.EndGameSessionRequestModel(endGameSessionRequestModel.getPlayer2Id(),
+                        loserId, GameStatus.LOSE));
             }
 
             removeGame(gameId);

@@ -6,11 +6,14 @@ package com.mycompany.model.requestModel;
 
 import com.mycompany.model.utils.GameStatus;
 
+import java.io.Serializable;
+
 /**
  *
  * @author abdel
  */
-public class EndGameSessionRequestModel {
+public class EndGameSessionRequestModel  implements Serializable {
+    private static final long serialVersionUID = 1L;
     int player1Id;
     int player2Id;
     GameStatus player1Status;

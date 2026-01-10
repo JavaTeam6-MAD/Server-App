@@ -168,7 +168,7 @@ public class PlayerHandler extends Thread {
             // We assume sender is the one forfeiting if status implies it, or just
             // generally Ending the session
             // For now, mapping EndGame request to Forfeit logic
-            GameManager.getInstance().handleForfeit(currentPlayer.getId());
+            GameManager.getInstance().handleForfeit(currentPlayer.getId(),model);
         }
     }
 
