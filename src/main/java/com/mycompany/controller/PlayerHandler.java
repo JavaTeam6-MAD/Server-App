@@ -40,8 +40,20 @@ public class PlayerHandler extends Thread {
             in = new ObjectInputStream(socket.getInputStream());
 
             while (true) {
-                Object request = in.readObject();
-                handleRequest(request);
+                try {
+                    Object request = in.readObject();
+                    handleRequest(request);
+                } catch (ClassNotFoundException | SQLException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    // Logic error in handling request?
+                    System.err.println("Error processing request: " + e.getMessage());
+                    e.printStackTrace();
+                    // If e is IOException/EOF, we must break.
+                    if (e instanceof IOException) {
+                        break;
+                    }
+                }
             }
 
         } catch (EOFException e) {
@@ -49,9 +61,15 @@ public class PlayerHandler extends Thread {
         } catch (IOException e) {
             System.out.println("Connection error: " + e.getMessage());
 
-        } catch (ClassNotFoundException | SQLException e) {
+        }  catch (Exception e) {
+            System.err.println("PlayerHandler Error: " + e.getMessage());
             e.printStackTrace();
-
+            // Do NOT break/disconnect for logic errors strictly, but loop continues if
+            // possible
+            // However, if streaming is broken, we can't continue.
+            // If readObject failed, we break. If handleRequest failed, we continue.
+            // We need to move try-catch block INSIDE the while loop for robustness against
+            // handleRequest errors.
         } finally {
             if (currentPlayer != null && currentPlayer.getId() != -1) {
                 try {
@@ -81,6 +99,15 @@ public class PlayerHandler extends Thread {
             out.flush();
         } else if (req instanceof RegisterRequestModel) {
             Player player = playerService.handleRegistration((RegisterRequestModel) req);
+            if (player != null) {
+                currentPlayer = player;
+                // Auto-login: Set status to Active/Available
+                playerService.updatePlayerStatus(currentPlayer.getId(), true, true);
+                GameManager.getInstance().addPlayer(currentPlayer.getId(), this);
+
+                player.setIsActive(true);
+                player.setIsAvailable(true);
+            }
             out.writeObject(player);
             out.flush();
         } else if (req instanceof ChangeNameRequestModel) {
@@ -135,6 +162,13 @@ public class PlayerHandler extends Thread {
                     GameManager.getInstance().broadcastMove(model.getGameId(), (MakeMoveResponseModel) moveResponse);
                 }
             }
+        } else if (req instanceof EndGameSessionRequestModel) {
+            EndGameSessionRequestModel model = (EndGameSessionRequestModel) req;
+            // Can be used for explicit Forfeit
+            // We assume sender is the one forfeiting if status implies it, or just
+            // generally Ending the session
+            // For now, mapping EndGame request to Forfeit logic
+            GameManager.getInstance().handleForfeit(currentPlayer.getId());
         }
     }
 

@@ -50,4 +50,12 @@ public class PlayerService {
     public void updatePlayerStatus(int playerId, boolean isActive, boolean isAvailable) throws SQLException {
         playerDAO.updatePlayerStatus(playerId, isActive, isAvailable);
     }
+
+    public void updateScore(int playerId, long newScore) throws SQLException {
+        playerDAO.updateScore(playerId, newScore);
+    }
+
+    public Player getPlayerById(int id) throws SQLException {
+        return playerDAO.getPlayerById(id);
+    }
 }
