@@ -139,7 +139,7 @@ public class PlayerHandler extends Thread {
             int id = ((MakeUnavailableRequestModel) req).getPlayerId();
             if (id != -1) {
                 // Unavailable: Active (still connected), Not Available (busy)
-                playerService.updatePlayerStatus(id, true, false);
+                playerService.updatePlayerStatus(id, false, false);
             }
         } else if (req instanceof SendChallengeRequestModel) {
             SendChallengeRequestModel model = (SendChallengeRequestModel) req;
@@ -172,7 +172,7 @@ public class PlayerHandler extends Thread {
         }
     }
 
-    private void closeResources() {
+    private synchronized void closeResources() {
         try {
             if (in != null)
                 in.close();
@@ -194,7 +194,7 @@ public class PlayerHandler extends Thread {
         }
     }
 
-    public String getPlayerName() {
+    public synchronized String getPlayerName() {
         return (currentPlayer != null) ? currentPlayer.getUserName() : null;
     }
 
