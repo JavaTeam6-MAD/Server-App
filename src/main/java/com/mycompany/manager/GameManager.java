@@ -8,6 +8,7 @@ import com.mycompany.model.requestModel.EndGameSessionRequestModel;
 import com.mycompany.model.requestModel.ReceiveChallengeRequestModel;
 import com.mycompany.model.responseModel.ReceiveChallengeResponseModel;
 import com.mycompany.model.responseModel.MakeMoveResponseModel;
+import com.mycompany.model.notification.ServerShutdownNotification;
 import com.mycompany.service.PlayerService;
 import com.mycompany.model.utils.GameStatus;
 
@@ -56,13 +57,34 @@ public class GameManager {
         }
     }
 
+    /**
+     * Broadcast server shutdown notification to all connected clients
+     */
+    public void broadcastServerShutdown() {
+        ServerShutdownNotification notification = new ServerShutdownNotification("Server is shutting down");
+        System.out.println("Broadcasting shutdown notification to " + onlinePlayers.size() + " clients");
+
+        for (Map.Entry<Integer, PlayerHandler> entry : onlinePlayers.entrySet()) {
+            try {
+                PlayerHandler handler = entry.getValue();
+                if (handler != null) {
+                    handler.sendRequest(notification);
+                    System.out.println("Sent shutdown notification to player " + entry.getKey());
+                }
+            } catch (Exception e) {
+                System.err.println(
+                        "Failed to send shutdown notification to player " + entry.getKey() + ": " + e.getMessage());
+            }
+        }
+    }
+
     // === Challenge Logic ===
     public void sendChallenge(int challengerId, String challengerName, int opponentId) {
         PlayerHandler opponent = onlinePlayers.get(opponentId);
         if (opponent != null) {
             // Updated model usage
             opponent.sendRequest(new ReceiveChallengeRequestModel(challengerId, opponentId, challengerName));
-        }else {
+        } else {
             /// TODO handle
         }
     }
@@ -200,9 +222,10 @@ public class GameManager {
                 // Or send EndGameSessionRequestModel with winnerId.
                 winnerHandler.sendRequest(new com.mycompany.model.requestModel.EndGameSessionRequestModel(winnerId,
                         loserId, GameStatus.WIN));
-            }else{
+            } else {
                 PlayerHandler winnerHandler2 = onlinePlayers.get(endGameSessionRequestModel.getPlayer2Id());
-                winnerHandler2.sendRequest(new com.mycompany.model.requestModel.EndGameSessionRequestModel(endGameSessionRequestModel.getPlayer2Id(),
+                winnerHandler2.sendRequest(new com.mycompany.model.requestModel.EndGameSessionRequestModel(
+                        endGameSessionRequestModel.getPlayer2Id(),
                         loserId, GameStatus.LOSE));
             }
 

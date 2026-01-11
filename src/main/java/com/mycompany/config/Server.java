@@ -1,4 +1,5 @@
 package com.mycompany.config;
+
 import com.mycompany.controller.PlayerHandler;
 
 import java.io.IOException;
@@ -8,7 +9,7 @@ import java.net.Socket;
 public class Server implements Runnable {
 
     private ServerSocket serverSocket;
-    private boolean running;//false
+    private boolean running;// false
     private final int port;
 
     public Server(int port) {
@@ -16,7 +17,8 @@ public class Server implements Runnable {
     }
 
     public void startServer() throws IOException {
-        if (running) return;
+        if (running)
+            return;
 
         serverSocket = new ServerSocket(port);
         running = true;
@@ -30,6 +32,17 @@ public class Server implements Runnable {
 
     public void stopServer() throws IOException {
         running = false;
+
+        // Notify all connected clients before shutdown
+        try {
+            com.mycompany.manager.GameManager.getInstance().broadcastServerShutdown();
+            // Give clients time to receive the notification
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            System.err.println("Interrupted while waiting for shutdown notifications: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error broadcasting shutdown notification: " + e.getMessage());
+        }
 
         if (serverSocket != null && !serverSocket.isClosed()) {
             serverSocket.close();
