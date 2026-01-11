@@ -18,6 +18,8 @@ CREATE TABLE Game (
     date DATETIME DEFAULT CURRENT_TIMESTAMP,
     status INT COMMENT '1: player1 won, 2: player2 won, 3: draw',
     player1ID INT NOT NULL,
+    isRecorded1 BOOLEAN DEFAULT FALSE,
+    isRecorded2 BOOLEAN DEFAULT FALSE,
     player2ID INT NOT NULL,
     -- Establishing Foreign Key relationships
     CONSTRAINT fk_player1 FOREIGN KEY (player1ID) REFERENCES Player(ID),

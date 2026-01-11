@@ -1,7 +1,8 @@
 module com.mycompany.serverxo {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.sql;
 
-    opens com.mycompany.serverxo to javafx.fxml;
-    exports com.mycompany.serverxo;
+    opens com.mycompany to javafx.fxml;
+    exports com.mycompany;
 }

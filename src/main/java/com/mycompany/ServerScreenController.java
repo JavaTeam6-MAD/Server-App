@@ -1,9 +1,9 @@
-package com.mycompany.serverxo;
+package com.mycompany;
 
+import com.mycompany.config.Server;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
@@ -15,6 +15,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
+
+import java.io.IOException;
+import java.util.List;
+import com.mycompany.manager.ServerScreenManager;
+import com.mycompany.model.app.Player;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
+import javafx.application.Platform;
 
 /**
  * Controller for the Server Dashboard Screen
@@ -66,18 +75,30 @@ public class ServerScreenController {
 
     private boolean serverRunning = false;
     private int activeGamesCount = 0;
+    /// server Socket
+    private final Server server;
+    private final ServerScreenManager screenManager;
 
     @FXML
     public void initialize() {
         // Initialize charts first
         initializeCharts();
 
-        // Load sample user data
-        loadSampleUsers();
+        // Start data polling
+        startDataPolling();
+
         updateServerStatus();
 
         // Update all charts with initial data
-        updateAllCharts();
+        // updateAllCharts(); // Initial update happens in polling
+
+        /// set server default running
+
+    }
+
+    public ServerScreenController() {
+        server = new Server(12345);
+        screenManager = new ServerScreenManager();
     }
 
     /**
@@ -142,13 +163,20 @@ public class ServerScreenController {
     private void onToggleServer() {
         serverRunning = !serverRunning;
         updateServerStatus();
+        try {
+            if (serverRunning) {
+                System.out.println("Server started!");
+                // Add your server start logic here
+                server.startServer();
 
-        if (serverRunning) {
-            System.out.println("Server started!");
-            // Add your server start logic here
-        } else {
-            System.out.println("Server stopped!");
-            // Add your server stop logic here
+            } else {
+                System.out.println("Server stopped!");
+                // Add your server stop logic here
+                server.stopServer();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            /// TODO Alert
         }
     }
 
@@ -170,21 +198,38 @@ public class ServerScreenController {
         }
     }
 
-    private void loadSampleUsers() {
-        // Sample online users
-        addUserToList(onlineUsersList, "Alice", 1250, true, true);
-        addUserToList(onlineUsersList, "Bob", 980, true, false);
-        addUserToList(onlineUsersList, "Charlie", 1420, true, false);
+    private void startDataPolling() {
+        // Initial refresh
+        refreshData();
 
-        // Sample offline users
-        addUserToList(offlineUsersList, "David", 760, false, false);
-        addUserToList(offlineUsersList, "Emma", 1100, false, false);
+        // Refresh every 5 seconds
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
+            refreshData();
+        }));
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+    }
 
-        // Update counts
-        updateUserCounts();
+    private void refreshData() {
+        Platform.runLater(() -> {
+            clearUsers();
+            List<Player> players = screenManager.getAllPlayers();
+            for (Player player : players) {
+                // Assuming isAvailable might be used for "In Game" status logic later,
+                // for now mapping isInGame to !isAvailable if online, or simpler logic.
+                // Based on DAO: isActive=Online, isAvailable=Available (not in game).
+                boolean isOnline = player.isIsActive();
+                boolean isInGame = isOnline && !player.isIsAvailable();
 
-        // Set sample active games count
-        activeGamesCount = 2;
+                addUser(player.getUserName(), (int) player.getScore(), isOnline, isInGame);
+            }
+            // Active games count - update if logic exists, for now keeping static or
+            // updating via simple logic
+            // If we want to actully count active games based on players in game:
+            int playersInGame = (int) players.stream().filter(p -> p.isIsActive() && !p.isIsAvailable()).count();
+            activeGamesCount = playersInGame / 2; // Rough estimate of games
+            updateGamesChart();
+        });
     }
 
     private void addUserToList(VBox container, String username, int score, boolean isOnline, boolean isInGame) {
@@ -260,7 +305,7 @@ public class ServerScreenController {
 
     /**
      * Add a new user to the appropriate list
-     * 
+     *
      * @param username The username
      * @param score    The user's score
      * @param isOnline Whether the user is online
@@ -274,7 +319,7 @@ public class ServerScreenController {
 
     /**
      * Remove a user from the lists
-     * 
+     *
      * @param username The username to remove
      */
     public void removeUser(String username) {
@@ -328,7 +373,7 @@ public class ServerScreenController {
 
     /**
      * Set the active games count directly and update the chart
-     * 
+     *
      * @param count The new games count
      */
     public void setActiveGamesCount(int count) {
@@ -338,7 +383,7 @@ public class ServerScreenController {
 
     /**
      * Get the current active games count
-     * 
+     *
      * @return The current number of active games
      */
     public int getActiveGamesCount() {
