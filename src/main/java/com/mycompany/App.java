@@ -1,5 +1,6 @@
 package com.mycompany;
 
+import com.mycompany.DAO.GameDAO;
 import com.mycompany.config.DBSingleton;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -44,7 +45,7 @@ public class App extends Application {
         DBSingleton.getConnection().close();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
 //        PlayerDAO playerDAO=new PlayerDAO();
 //
 //        try {
@@ -52,7 +53,12 @@ public class App extends Application {
 //        } catch (SQLException e) {
 //            System.out.println("cant insert playerrrr");
 //        }
+
         launch();
+
+
+
+
 
     }
 

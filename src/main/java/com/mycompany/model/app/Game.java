@@ -6,13 +6,15 @@ package com.mycompany.model.app;
 
 import com.mycompany.model.utils.GameStatus;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  *
  * @author abdel
  */
-public class Game {
+public class Game implements Serializable {
+    private static final long serialVersionUID = 1L;
     int id;
     long score;
     Player player1;
@@ -20,6 +22,26 @@ public class Game {
     GameStatus status;
     Date date;
     boolean isRecorded;
+
+    public Game() {
+    }
+
+
+    public Game(int id, long score, Player player1, Player player2, GameStatus status, Date date, boolean isRecorded) {
+        this.id = id;
+        this.score = score;
+        this.player1 = player1;
+        this.player2 = player2;
+        this.status = status;
+        this.date = date;
+        this.isRecorded = isRecorded;
+    }
+
+    public Game(Player player1, Player player2, GameStatus status) {
+        this.player1 = player1;
+        this.player2 = player2;
+        this.status = status;
+    }
 
     public boolean isIsRecorded() {
         return isRecorded;
@@ -76,5 +98,14 @@ public class Game {
     public void setDate(Date date) {
         this.date = date;
     }
-    
+    @Override
+    public String toString() {
+        return "Game{" +
+                "id=" + id +
+                ", status=" + status +
+                ", player1=" + (player1 != null ? player1.getUserName() : "null") +
+                ", player2=" + (player2 != null ? player2.getUserName() : "null") +
+                ", date=" + date +
+                '}';
+    }
 }

@@ -1,6 +1,8 @@
 package com.mycompany.controller;
 
+import com.mycompany.DAO.GameDAO;
 import com.mycompany.DAO.PlayerDAO;
+import com.mycompany.model.app.Game;
 import com.mycompany.model.app.Player;
 import com.mycompany.model.requestModel.LoginRequestModel;
 import com.mycompany.model.requestModel.*;
@@ -119,6 +121,11 @@ public class PlayerHandler extends Thread {
             List<Player> p = dao.getAllPlayers();
             out.writeObject(p);
             out.flush();
+        } else if (req instanceof GetGamesRequestModel) {
+            GameDAO dao=new GameDAO();
+            List<Game> games=dao.getAllGames();
+            out.writeObject(games);
+            out.flush();
         } else if (req instanceof ChangePasswordRequestModel) {
             Player player = playerService.handleUpdatePassword((ChangePasswordRequestModel) req);
             out.writeObject(player);
@@ -164,10 +171,10 @@ public class PlayerHandler extends Thread {
             }
         } else if (req instanceof EndGameSessionRequestModel) {
             EndGameSessionRequestModel model = (EndGameSessionRequestModel) req;
-            // Can be used for explicit Forfeit
-            // We assume sender is the one forfeiting if status implies it, or just
-            // generally Ending the session
-            // For now, mapping EndGame request to Forfeit logic
+            /// Can be used for explicit Forfeit
+            /// We assume sender is the one forfeiting if status implies it, or just
+            /// generally Ending the session
+            /// For now, mapping EndGame request to Forfeit logic
             GameManager.getInstance().handleForfeit(currentPlayer.getId(),model);
         }
     }
